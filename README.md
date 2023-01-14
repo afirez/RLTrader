@@ -52,6 +52,10 @@ pip install -r requirements.no-gpu.txt
 Update your current static files, that are used by default:
 
 ```bash
+ optuna create-study --study-name example --storage sqlite:///example.db
+ 
+ optuna storage upgrade --storage sqlite:///data/params.db
+ 
  python ./cli.py update-static-data
 ```
 

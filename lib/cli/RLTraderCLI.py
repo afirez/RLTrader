@@ -30,7 +30,7 @@ class RLTraderCLI:
         self.parser.add_argument('--mini-batches', type=int, default=1, help='Mini batches', dest='n_minibatches')
         self.parser.add_argument('--train-split-percentage', type=float, default=0.8, help='Train set percentage')
         self.parser.add_argument('--verbose-model', type=int, default=1, help='Verbose model', dest='model_verbose')
-        self.parser.add_argument('--params-db-path', type=str, default='sqlite:///data/params.db', help='Params path')
+        self.parser.add_argument('--params-db-path', type=str, default='sqlite:///data/params-sb3.db', help='Params path')
         self.parser.add_argument('--tensorboard-path',
                                  type=str,
                                  default=os.path.join('data', 'tensorboard'),

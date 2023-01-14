@@ -3,7 +3,7 @@ pandas
 sklearn
 matplotlib
 gym
-stable_baselines
+stable_baselines3
 optuna
 ta
 statsmodels==0.10.0rc2

@@ -7,19 +7,11 @@ import quantstats as qs
 from os import path
 from typing import Dict
 
-# stable_baselines
-# from stable_baselines.common.base_class import BaseRLModel
-# from stable_baselines.common.policies import BasePolicy, MlpLnLstmPolicy
-# from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
-# from stable_baselines.common import set_global_seeds
-# from stable_baselines import PPO2
-
-# stable_baselines3
-from stable_baselines3.common.base_class import BaseAlgorithm
-from stable_baselines3.common.policies import BasePolicy #, MlpLnLstmPolicy
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines3.common.utils import set_random_seed
-from stable_baselines3 import PPO
+from stable_baselines.common.base_class import BaseRLModel
+from stable_baselines.common.policies import BasePolicy, MlpLnLstmPolicy
+from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
+from stable_baselines.common import set_global_seeds
+from stable_baselines import PPO2
 
 from lib.env.TradingEnv import TradingEnv
 from lib.env.reward import BaseRewardStrategy, IncrementalProfit, WeightedUnrealizedProfit
@@ -34,11 +26,7 @@ def make_env(data_provider: BaseDataProvider, rank: int = 0, seed: int = 0):
         env.seed(seed + rank)
         return env
 
-    # stable_baselines
-    # set_global_seeds(seed)
-
-    # stable_baselines3
-    set_random_seed(seed)
+    set_global_seeds(seed)
 
     return _init
 
@@ -48,10 +36,8 @@ class RLTrader:
     study_name = None
 
     def __init__(self,
-                 model: BaseAlgorithm = PPO,
-                #  policy: BasePolicy = MlpLnLstmPolicy,
-                #  policy: str = "MlpLnLstmPolicy",
-                 policy: str = "MlpPolicy",
+                 model: BaseRLModel = PPO2,
+                 policy: BasePolicy = MlpLnLstmPolicy,
                  reward_strategy: BaseRewardStrategy = IncrementalProfit,
                  exchange_args: Dict = {},
                  **kwargs):
@@ -63,7 +49,7 @@ class RLTrader:
         self.exchange_args = exchange_args
         self.tensorboard_path = kwargs.get('tensorboard_path', None)
         self.input_data_path = kwargs.get('input_data_path', 'data/input/coinbase-1h-btc-usd.csv')
-        self.params_db_path = kwargs.get('params_db_path', 'sqlite:///data/params-sb3.db')
+        self.params_db_path = kwargs.get('params_db_path', 'sqlite:///data/params.db')
 
         self.date_format = kwargs.get('date_format', ProviderDateFormat.DATETIME_HOUR_24)
 
@@ -129,8 +115,7 @@ class RLTrader:
         }
 
     def optimize_agent_params(self, trial):
-        # if self.Model != PPO2:
-        if self.Model != PPO:
+        if self.Model != PPO2:
             return {'learning_rate': trial.suggest_loguniform('learning_rate', 1e-5, 1.)}
 
         return {
@@ -138,9 +123,9 @@ class RLTrader:
             'gamma': trial.suggest_loguniform('gamma', 0.9, 0.9999),
             'learning_rate': trial.suggest_loguniform('learning_rate', 1e-5, 1.),
             'ent_coef': trial.suggest_loguniform('ent_coef', 1e-8, 1e-1),
-            # 'cliprange': trial.suggest_uniform('cliprange', 0.1, 0.4),
-            # 'noptepochs': int(trial.suggest_loguniform('noptepochs', 1, 48)),
-            # 'lam': trial.suggest_uniform('lam', 0.8, 1.)
+            'cliprange': trial.suggest_uniform('cliprange', 0.1, 0.4),
+            'noptepochs': int(trial.suggest_loguniform('noptepochs', 1, 48)),
+            'lam': trial.suggest_uniform('lam', 0.8, 1.)
         }
 
     def optimize_params(self, trial, n_prune_evals_per_trial: int = 2, n_tests_per_eval: int = 1):
@@ -156,8 +141,7 @@ class RLTrader:
         model = self.Model(self.Policy,
                            train_env,
                            verbose=self.model_verbose,
-                        #    nminibatches=1,
-                        #    batch_size=60,
+                           nminibatches=1,
                            tensorboard_log=self.tensorboard_path,
                            **model_params)
 
